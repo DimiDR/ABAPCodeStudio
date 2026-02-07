@@ -1,0 +1,61 @@
+# ═══════════════════════════════════════════════════════════════
+# ABAP Code Studio — Agent Configuration
+# ═══════════════════════════════════════════════════════════════
+#
+# This file configures the SAP systems the agent connects to.
+# Credentials are NOT stored here — see /secrets/ directory.
+#
+# Credential locations:
+#   - Basic Auth: /secrets/{system_name}.json → {"username": "...", "password": "..."}
+#   - BTP Service Key: /secrets/{system_name}_service_key.json
+#   - Or use environment variables: SAP_{SYSTEM}_USER, SAP_{SYSTEM}_PASS
+#   - Or use HashiCorp Vault: VAULT_ADDR + VAULT_TOKEN env vars
+
+agent:
+  token: "<your-agent-token-from-cloud-ui>"
+  cloud_url: wss://api.abap-studio.de/agent/ws
+  log_level: INFO
+
+systems:
+  # ─── SAP ECC 6.0 (On-Premise) ──────────────────────────
+  ecc_production:
+    type: ecc
+    url: https://ecc-prod.company.com:8443
+    client: "100"
+    auth_method: basic         # basic | snc
+    connection_primary: adt    # adt | rfc | gui
+    connection_fallback: rfc
+    adt_activated: true
+    abapgit_installed: true
+    min_basis_version: "752"   # Determines available ADT APIs
+    rfc:
+      sysnr: "00"
+      ashost: 10.0.1.50
+
+  # ─── BTP ABAP Cloud ────────────────────────────────────
+  btp_dev:
+    type: btp_abap_cloud
+    url: https://dev.abap.eu10.hana.ondemand.com
+    auth_method: jwt_xsuaa
+    xsuaa_url: https://dev.authentication.eu10.hana.ondemand.com
+    principal_propagation: true
+    gcts_enabled: true
+    ai_sdk_available: true
+
+# ─── AI Configuration (optional) ─────────────────────────
+ai:
+  # Use customer's own SAP AI Core for code generation
+  provider: sap_ai_core
+  service_key: /secrets/aicore-key.json
+  models:
+    code_generation: sap-abap-1
+    reasoning: claude-opus-4-6
+    quick_tasks: claude-sonnet-4-5
+
+# ─── Git Configuration ───────────────────────────────────
+git:
+  provider: github
+  repo: company/abap-objects
+  default_branch: main
+  token_path: /secrets/github_token
+  branch_prefix: "feature/ai-"

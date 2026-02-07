@@ -1,0 +1,26 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# System deps (git for abapGit integration)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Python deps
+COPY agent-sdk/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy code
+COPY shared/ /app/shared/
+COPY agent-sdk/ /app/agent-sdk/
+
+WORKDIR /app/agent-sdk
+ENV PYTHONPATH=/app
+
+# Config and secrets mounts (provided by customer)
+VOLUME ["/config", "/secrets"]
+ENV AGENT_CONFIG=/config/systems.yaml
+ENV AGENT_SECRETS_DIR=/secrets
+
+CMD ["python", "agent.py", "start"]

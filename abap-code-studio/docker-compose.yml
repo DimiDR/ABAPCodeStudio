@@ -1,0 +1,60 @@
+version: "3.9"
+
+# ═══════════════════════════════════════════════════════════════
+# ABAP Code Studio — Docker Compose
+#
+# Cloud Backend: FastAPI + PostgreSQL + Redis
+# Agent: Separate image, deployed at customer site
+# ═══════════════════════════════════════════════════════════════
+
+services:
+
+  # ─── CLOUD: API Backend ─────────────────────────────────
+  cloud-api:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.cloud
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://studio:studio@postgres:5432/abap_studio
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-me}
+      - LOG_LEVEL=INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ─── CLOUD: PostgreSQL (metadata only) ──────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: abap_studio
+      POSTGRES_USER: studio
+      POSTGRES_PASSWORD: studio
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U studio -d abap_studio"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ─── CLOUD: Redis (WebSocket pub/sub + caching) ────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

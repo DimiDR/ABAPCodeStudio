@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "abap-studio-agent"
+version = "1.0.0"
+description = "ABAP Code Studio — Client Agent for AI-powered ABAP development"
+readme = "README.md"
+license = { text = "Proprietary" }
+requires-python = ">=3.11"
+authors = [
+    { name = "ABAP Code Studio" },
+]
+keywords = ["sap", "abap", "mcp", "ai", "code-generation", "adt"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Code Generators",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "mcp[cli]>=1.0.0",
+    "httpx>=0.27.0",
+    "pydantic>=2.6.0",
+    "pyyaml>=6.0",
+    "websockets>=12.0",
+    "gitpython>=3.1.0",
+]
+
+[project.optional-dependencies]
+rfc = ["pyrfc>=3.3"]
+vault = ["hvac>=2.1"]
+keyring = ["keyring>=25.0"]
+ai = ["generative-ai-hub-sdk>=3.0"]
+all = [
+    "abap-studio-agent[rfc,vault,keyring,ai]",
+]
+
+[project.scripts]
+abap-studio-agent = "agent_sdk.agent:main"
+
+[project.urls]
+Homepage = "https://abap-studio.de"
+Documentation = "https://docs.abap-studio.de"
+Repository = "https://github.com/your-org/abap-code-studio"
+
+[tool.hatch.build.targets.wheel]
+packages = ["agent-sdk", "shared"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
